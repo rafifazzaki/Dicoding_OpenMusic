@@ -14,11 +14,13 @@
   "dependencies": {
     "@hapi/hapi": "^21.3.2",
     "dotenv": "^16.3.1",
+    "joi": "^17.11.0",
     "nanoid": "^3.3.7",
     "node-pg-migrate": "^6.2.2",
     "pg": "^8.11.3"
   },
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.2"
   }
 }

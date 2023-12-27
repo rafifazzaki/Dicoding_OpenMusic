@@ -1,5 +1,7 @@
 const { nanoid } = require('nanoid');
-const { Pool } = require('pg')
+const { Pool } = require('pg');
+const InvariantError = require('../../exceptions/InvariantError');
+const NotFoundError = require('../../exceptions/NotFoundError')
 
 class AlbumsService{
     constructor(){
@@ -7,7 +9,7 @@ class AlbumsService{
     }
 
     async addAlbum({name, year}){
-        const id = nanoid(16);
+        const id = "album-" + nanoid(16);
         const createdAt = new Date().toISOString();
         const updatedAt = createdAt;
 
@@ -19,7 +21,7 @@ class AlbumsService{
         const result = await this._pool.query(query)
 
         if(!result.rows[0].id){
-            throw Error('gagal ditambahkan')
+            throw InvariantError('Album gagal ditambahkan')
         }
 
         return result.rows[0].id
@@ -39,11 +41,23 @@ class AlbumsService{
         const result = await this._pool.query(query);
 
         if(!result.rows.length){
-            throw new Error('albums tidak ditemukan');
+            throw new NotFoundError('Album tidak ditemukan');
         }
 
-        // return result.rows.map(mapDBToModel)[0];
-        return result.rows[0];
+        const query2 = {
+            text: 'SELECT * from songs WHERE "albumId" = $1',
+            values: [id],
+        }
+
+        const songs = await this._pool.query(query2);
+
+        const joinSongs = {
+            ...result.rows[0],
+            songs: songs.rows
+        }
+        console.log(joinSongs);
+        return joinSongs;
+
     }
 
     async editAlbumById(id, {name, year}){
@@ -54,9 +68,8 @@ class AlbumsService{
         }
 
         const result = await this._pool.query(query)
-
         if(!result.rows.length){
-            throw new Error('Gagal memperbarui songs. Id tidak ditemukan');
+            throw new NotFoundError('Gagal memperbarui Album. Id tidak ditemukan');
         }
     }
 
@@ -69,7 +82,7 @@ class AlbumsService{
         const result = await this._pool.query(query);
 
         if(!result.rows.length){
-            throw new Error('Catatan gagal dihapus. Id tidak ditemukan')
+            throw new NotFoundError('Album gagal dihapus. Id tidak ditemukan')
         }
     }
 }
