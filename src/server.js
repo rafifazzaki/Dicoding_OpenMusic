@@ -11,15 +11,22 @@ const SongsService = require('./services/postgres/SongsService');
 const SongsValidator = require('./validator/songs');
 
 const ClientError = require('./exceptions/ClientError');
+const Jwt = require('@hapi/jwt');
 
 const users = require('./api/users');
 const UsersService = require('./services/postgres/UsersService');
 const UsersValidator = require('./validator/users')
 
+const authentications = require('./api/authentications')
+const AuthenticationsService = require('./services/postgres/AuthenticationsService')
+const TokenManager = require('./tokenize/TokenManager')
+const AuthenticationsValidator = require('./validator/authentications')
+
 const init = async () => {
   const songsService = new SongsService();
   const albumsService = new AlbumsService();
   const usersService = new UsersService()
+  const authenticationsService = new AuthenticationsService()
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -30,6 +37,28 @@ const init = async () => {
       },
     },
   });
+
+  await server.register([
+    {
+        plugin: Jwt
+    }
+])
+
+server.auth.strategy('notesapp_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+        aud: false,
+        iss: false,
+        sub: false,
+        maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+        isValid: true,
+        credentials: {
+            id: artifacts.decoded.payload.id,
+        },
+    })
+})
 
   await server.register([
     {
@@ -51,6 +80,15 @@ const init = async () => {
       options: {
         service: usersService,
         validator: UsersValidator
+      }
+    },
+    {
+      plugin: authentications,
+      options: {
+        authenticationsService,
+        usersService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator
       }
     },
 
