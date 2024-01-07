@@ -10,6 +10,19 @@ class PlaylistsService {
         this._pool = new Pool();
         this._collaborationsService = collaborationsService
     }
+
+    async AddToActivities(playlistId, credentialId, songId, action){
+      const id = `activities-${nanoid(16)}`;
+      const time = new Date().toISOString();
+      
+      const query = {
+        text: "INSERT INTO activities VALUES($1, $2, $3, $4, $5, $6) RETURNING id;",
+        values: [id, playlistId, credentialId, songId, action, time],
+      };
+      console.log('in');
+      const result = await this._pool.query(query);
+      
+  }
     
     async addPlaylist({ name, credentialId }) {
         const id = `playlist-${nanoid(16)}`;
@@ -50,7 +63,7 @@ class PlaylistsService {
         
       }
 
-      async addSongToPlaylist({id, songId}){
+      async addSongToPlaylist({id, songId, credentialId}){
         const updatedAt = new Date().toISOString();
 
         const query = {
@@ -68,6 +81,9 @@ class PlaylistsService {
         if (!result.rows.length) {
           throw new NotFoundError('Gagal menambah songs. Id playlist tidak ditemukan');
         }
+
+        await this.AddToActivities(id, credentialId, songId, 'add')
+
         return result.rows.map(mapDBToModel)[0];
       }
 
@@ -135,7 +151,7 @@ class PlaylistsService {
     }
 
 
-    async deleteSongFromPlaylistById(songId, id){
+    async deleteSongFromPlaylistById(songId, id, credentialId){
       const query = {
         text: `UPDATE playlists
         SET "songId" = ARRAY_REMOVE("songId", $1)
@@ -143,16 +159,28 @@ class PlaylistsService {
         values: [songId, id],
     };
 
-    const result = await this._pool.query(query);
+      const result = await this._pool.query(query);
 
       if(!result.rows.length){
           throw new NotFoundError('Song gagal dihapus. Id tidak ditemukan')
       }
+      
+      await this.AddToActivities(id, credentialId, songId, 'delete')
+      // await AddToActivities(playlistId, credentialId, songId, 'delete')
+
     }
 
     async deletePlaylistById(id){
+      console.log(id);
+      const deleteFkConstraintActivities = {
+        text: 'DELETE FROM activities WHERE playlist_id = $1;',
+        values: [id]
+      }
+
+      await this._pool.query(deleteFkConstraintActivities);
+
       const query = {
-        text: 'DELETE from playlists WHERE id = $1 RETURNING id',
+        text: 'DELETE from playlists WHERE id = $1 RETURNING id;',
         values: [id],
       };
 
@@ -162,6 +190,8 @@ class PlaylistsService {
           throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan')
       }
     }
+
+    
 
 
       
