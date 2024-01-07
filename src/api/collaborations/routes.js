@@ -2,7 +2,7 @@ const routes = (handler) => [
     {
         method: 'POST',
         path: '/collaborations',
-        handler: (request, h) => handler.deleteSongFromPlaylistHandler(request, h),
+        handler: (request, h) => handler.addCollaborationHandler(request, h),
         options: {
           auth: 'playlists_jwt'
         },
@@ -10,7 +10,7 @@ const routes = (handler) => [
       {
         method: 'DELETE',
         path: '/collaborations',
-        handler: (request, h) => handler.deleteSongFromPlaylistHandler(request, h),
+        handler: (request, h) => handler.deleteCollaborationHandler(request, h),
         options: {
           auth: 'playlists_jwt'
         },
