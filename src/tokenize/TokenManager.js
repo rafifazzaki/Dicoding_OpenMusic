@@ -13,9 +13,6 @@ const TokenManager = {
         } catch (error) {
             throw new InvariantError('Refresh token tidak valid')
         }
-
-        
-        
     }
 };
 
