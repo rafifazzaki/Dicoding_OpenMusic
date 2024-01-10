@@ -12,11 +12,6 @@ exports.up = pgm => {
             type: 'TEXT',
             notNull: false,
         },
-        songId: {
-            type: 'VARCHAR(50)[]',
-            notNull: false,
-            // references: 'songs(id)'
-        },
         owner: {
             type: 'VARCHAR(50)',
             notNull: true,
