@@ -1,71 +1,67 @@
-const { Pool } = require('pg')
-const { nanoid } = require('nanoid')
+/* eslint-disable no-underscore-dangle */
+const { Pool } = require('pg');
+const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
-class CollaborationsService{
-    constructor(){
-        this._pool = new Pool()
+class CollaborationsService {
+  constructor() {
+    this._pool = new Pool();
+  }
+
+  async addCollaboration({ playlistId, userId }) {
+    const id = `collab-${nanoid(16)}`;
+
+    const userCheckQuery = {
+      text: 'SELECT id FROM users WHERE id = $1',
+      values: [userId],
+    };
+
+    const userCheckResult = await this._pool.query(userCheckQuery);
+
+    if (!userCheckResult.rows.length) {
+      throw new NotFoundError('UserId tidak ditemukan');
     }
 
-    async addCollaboration({playlistId, userId}){
-        const id=`collab-${nanoid(16)}`;
-        console.log(playlistId, userId);
+    const query = {
+      text: 'INSERT INTO collaborations VALUES($1, $2, $3) RETURNING id',
+      values: [id, playlistId, userId],
+    };
 
-        const userCheckQuery = {
-            text: 'SELECT id FROM users WHERE id = $1',
-            values: [userId]
-        };
-        
-        const userCheckResult = await this._pool.query(userCheckQuery);
+    const result = await this._pool.query(query);
 
-        if(!userCheckResult.rows.length){
-            throw new NotFoundError('UserId tidak ditemukan')
-        }
-
-        const query = {
-            text: 'INSERT INTO collaborations VALUES($1, $2, $3) RETURNING id',
-            values: [id, playlistId, userId]
-        }
-
-        const result = await this._pool.query(query);
-
-        if(!result.rows.length){
-            throw new InvariantError('Kolaborasi gagal ditambahkan');
-        }
-
-        return result.rows[0].id;
+    if (!result.rows.length) {
+      throw new InvariantError('Kolaborasi gagal ditambahkan');
     }
 
-    async deleteCollaboration(playlistId, userId){
-        console.log(playlistId, userId);
-        const query = {
-            text: 'DELETE FROM collaborations WHERE playlist_id = $1 AND user_id = $2 RETURNING id',
-            values: [playlistId, userId]
-        }
+    return result.rows[0].id;
+  }
 
-        const result = await this._pool.query(query)
+  async deleteCollaboration(playlistId, userId) {
+    const query = {
+      text: 'DELETE FROM collaborations WHERE playlist_id = $1 AND user_id = $2 RETURNING id',
+      values: [playlistId, userId],
+    };
 
-        if(!result.rows.length){
-            throw new InvariantError('Kolaborasi gagal dihapus')
-        }
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new InvariantError('Kolaborasi gagal dihapus');
     }
+  }
 
-    async verifyCollaborator(playlistId, userId){
-        const query = {
-            text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
-            values: [playlistId, userId]
-        }
+  async verifyCollaborator(playlistId, userId) {
+    const query = {
+      text: 'SELECT * FROM collaborations WHERE playlist_id = $1 AND user_id = $2',
+      values: [playlistId, userId],
+    };
 
-        const result = await this._pool.query(query)
+    const result = await this._pool.query(query);
 
-        if(!result.rows.length){
-            throw new InvariantError('Kolaborasi gagal diverifikasi')
-        }
-
+    if (!result.rows.length) {
+      throw new InvariantError('Kolaborasi gagal diverifikasi');
     }
-
-     
+  }
 }
 
-module.exports = CollaborationsService
+module.exports = CollaborationsService;
