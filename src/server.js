@@ -30,8 +30,14 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
+const _exports = require('./api/exports')
+const ProducerService = require('./services/rabbitmq/ProducerService')
+const exportsValidator = require('./validator/exports')
+
 const activities = require('./api/activities');
 const ActivitiesService = require('./services/postgres/ActivitiesService');
+
+const config = require('./utils/config')
 
 const init = async () => {
   const songsService = new SongsService();
@@ -43,8 +49,8 @@ const init = async () => {
   const activitiesService = new ActivitiesService();
 
   const server = Hapi.server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -59,12 +65,12 @@ const init = async () => {
   ]);
 
   server.auth.strategy('playlists_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.jwt.accessToken,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.jwt.accessTokenAge,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -127,6 +133,13 @@ const init = async () => {
         playlistsService,
       },
     },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        validator: exportsValidator
+      }
+    }
 
   ]);
 
