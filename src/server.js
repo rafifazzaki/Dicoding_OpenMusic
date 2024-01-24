@@ -37,7 +37,14 @@ const exportsValidator = require('./validator/exports')
 const activities = require('./api/activities');
 const ActivitiesService = require('./services/postgres/ActivitiesService');
 
+
+const likes = require('./api/likes')
+const LikesService = require('./services/postgres/LikesService')
+
+
+
 const config = require('./utils/config')
+const Inert = require('@hapi/inert')
 
 const init = async () => {
   const songsService = new SongsService();
@@ -47,6 +54,7 @@ const init = async () => {
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
   const activitiesService = new ActivitiesService();
+  const likesService = new LikesService()
 
   const server = Hapi.server({
     port: config.app.port,
@@ -62,6 +70,9 @@ const init = async () => {
     {
       plugin: Jwt,
     },
+    {
+      plugin: Inert
+    }
   ]);
 
   server.auth.strategy('playlists_jwt', 'jwt', {
@@ -138,6 +149,12 @@ const init = async () => {
       options: {
         service: ProducerService,
         validator: exportsValidator
+      }
+    },
+    {
+      plugin: likes,
+      options: {
+        service: likesService
       }
     }
 
