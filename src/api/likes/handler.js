@@ -31,14 +31,18 @@ class LikesHandler{
 
     async getLikeFromAlbumHandler(request, h){
       const { id } = request.params;
-        const {count} = await this._service.getAlbums(id);
+        const {count, cache} = await this._service.getAlbums(id);
         const likes = parseInt(count)
-        return {
+        
+
+        const response = h.response({
           status: 'success',
           data: {
             likes,
           },
-        };
+        })
+        if(cache) response.header('X-Data-Source', 'cache')
+        return response
     }
 }
 module.exports = LikesHandler

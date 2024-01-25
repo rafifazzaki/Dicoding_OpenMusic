@@ -42,6 +42,7 @@ const likes = require('./api/likes')
 const LikesService = require('./services/postgres/LikesService')
 
 
+const CacheService = require('./services/redis/CacheService')
 
 const config = require('./utils/config')
 const Inert = require('@hapi/inert')
@@ -54,7 +55,9 @@ const init = async () => {
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
   const activitiesService = new ActivitiesService();
-  const likesService = new LikesService()
+
+  const cacheService = new CacheService()
+  const likesService = new LikesService(cacheService)
 
   const server = Hapi.server({
     port: config.app.port,
