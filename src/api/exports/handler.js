@@ -9,9 +9,11 @@ class ExportsHandler {
     await this._validator.validateExportPlaylistsPayload(request.payload);
     await this._service.checkPlaylistId(request.params, request.auth.credentials.id);
 
+    const { playlistId } = request.params;
+
     const message = {
       userId: request.auth.credentials.id,
-      playlistId: request.params,
+      playlistId,
       targetEmail: request.payload.targetEmail,
     };
 
