@@ -1,8 +1,8 @@
 /* eslint-disable no-underscore-dangle */
 const { nanoid } = require('nanoid');
 const { Pool } = require('pg');
-const fs = require('fs')
-const path = require('path')
+const fs = require('fs');
+const path = require('path');
 const InvariantError = require('../../exceptions/InvariantError');
 const NotFoundError = require('../../exceptions/NotFoundError');
 
@@ -87,34 +87,33 @@ class AlbumsService {
     }
   }
 
-  async addCoverToAlbumByIdHandler(id, file, meta){
-    const folder = path.resolve(__dirname, '../../../media')
-    if(!fs.existsSync(folder)){
-      fs.mkdirSync(folder, { recursive:true })
+  async addCoverToAlbumByIdHandler(id, file, meta) {
+    const folder = path.resolve(__dirname, '../../../media');
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
     }
-    
-    const filename = meta.filename //const filename = +new Date() + meta.filename
-    const folderPath = `${folder}/${filename}`
+
+    const { filename } = meta; // const filename = +new Date() + meta.filename
+    const folderPath = `${folder}/${filename}`;
 
     const query = {
       text: 'UPDATE albums SET "coverUrl"=$1 WHERE id=$2',
-      values: [folderPath, id]
-    }
+      values: [folderPath, id],
+    };
 
-  
     try {
       await this._pool.query(query);
     } catch (error) {
       throw new NotFoundError('Gagal mengupload album cover');
     }
 
-    const fileStream = fs.createWriteStream(folderPath)
+    const fileStream = fs.createWriteStream(folderPath);
 
     return new Promise((resolve, reject) => {
-      fileStream.on('error', (error) => reject(error))
-      file.pipe(fileStream)
-      file.on('end', () => resolve(filename))
-    })
+      fileStream.on('error', (error) => reject(error));
+      file.pipe(fileStream);
+      file.on('end', () => resolve(filename));
+    });
   }
 }
 

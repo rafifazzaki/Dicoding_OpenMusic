@@ -1,8 +1,10 @@
+/* eslint-disable no-underscore-dangle */
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
 const albums = require('./api/albums');
 const AlbumsService = require('./services/postgres/AlbumsService');
 const AlbumValidator = require('./validator/albums');
@@ -30,22 +32,19 @@ const collaborations = require('./api/collaborations');
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const CollaborationsValidator = require('./validator/collaborations');
 
-const _exports = require('./api/exports')
-const ProducerService = require('./services/rabbitmq/ProducerService')
-const exportsValidator = require('./validator/exports')
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const exportsValidator = require('./validator/exports');
 
 const activities = require('./api/activities');
 const ActivitiesService = require('./services/postgres/ActivitiesService');
 
+const likes = require('./api/likes');
+const LikesService = require('./services/postgres/LikesService');
 
-const likes = require('./api/likes')
-const LikesService = require('./services/postgres/LikesService')
+const CacheService = require('./services/redis/CacheService');
 
-
-const CacheService = require('./services/redis/CacheService')
-
-const config = require('./utils/config')
-const Inert = require('@hapi/inert')
+const config = require('./utils/config');
 
 const init = async () => {
   const songsService = new SongsService();
@@ -56,8 +55,8 @@ const init = async () => {
   const playlistsService = new PlaylistsService(collaborationsService);
   const activitiesService = new ActivitiesService();
 
-  const cacheService = new CacheService()
-  const likesService = new LikesService(cacheService)
+  const cacheService = new CacheService();
+  const likesService = new LikesService(cacheService);
 
   const server = Hapi.server({
     port: config.app.port,
@@ -74,8 +73,8 @@ const init = async () => {
       plugin: Jwt,
     },
     {
-      plugin: Inert
-    }
+      plugin: Inert,
+    },
   ]);
 
   server.auth.strategy('playlists_jwt', 'jwt', {
@@ -151,15 +150,15 @@ const init = async () => {
       plugin: _exports,
       options: {
         service: ProducerService,
-        validator: exportsValidator
-      }
+        validator: exportsValidator,
+      },
     },
     {
       plugin: likes,
       options: {
-        service: likesService
-      }
-    }
+        service: likesService,
+      },
+    },
 
   ]);
 

@@ -60,9 +60,9 @@ class AlbumsHandler {
     };
   }
 
-  async postCoverToAlbumByIdHandler(request, h){
-    const { cover:data } = request.payload
-    this._validator.validateImageHeadersSchema(data.hapi.headers)
+  async postCoverToAlbumByIdHandler(request, h) {
+    const { cover: data } = request.payload;
+    this._validator.validateImageHeadersSchema(data.hapi.headers);
     const { id } = request.params;
     const coverResponse = await this._service.addCoverToAlbumByIdHandler(id, data, data.hapi);
     const response = h.response({
@@ -70,13 +70,12 @@ class AlbumsHandler {
       message: 'berhasil mengupload cover album',
       data: {
         id,
-        coverResponse
+        coverResponse,
       },
     });
     response.code(201);
     return response;
   }
-
 }
 
 module.exports = AlbumsHandler;

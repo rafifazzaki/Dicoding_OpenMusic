@@ -2,16 +2,16 @@
 
 exports.shorthands = undefined;
 
-exports.up = pgm => {
-    pgm.addColumn('albums', {
-        coverUrl: {
-            type: 'TEXT'
-        }
-    })
+exports.up = (pgm) => {
+  pgm.addColumn('albums', {
+    coverUrl: {
+      type: 'TEXT',
+    },
+  });
 
-    pgm.sql('UPDATE albums SET "coverUrl" = NULL')
+  pgm.sql('UPDATE albums SET "coverUrl" = NULL');
 };
 
-exports.down = pgm => {
-    pgm.dropColumn('albums', 'coverUrl')
+exports.down = (pgm) => {
+  pgm.dropColumn('albums', 'coverUrl');
 };

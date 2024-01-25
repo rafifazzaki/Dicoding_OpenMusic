@@ -1,28 +1,28 @@
-class ExportsHandler{
-    constructor(service, validator){
-        this._service = service,
-        this._validator = validator
-    }
+/* eslint-disable no-underscore-dangle */
+class ExportsHandler {
+  constructor(service, validator) {
+    this._service = service;
+    this._validator = validator;
+  }
 
-    async postExportPlaylistsHandler(request, h){
-        await this._validator.validateExportPlaylistsPayload(request.payload)
-        await this._service.checkPlaylistId(request.params, request.auth.credentials.id)
-        
-        const message = {
-            userId: request.auth.credentials.id,
-            playlistId: request.params,
-            targetEmail: request.payload.targetEmail,
-        }
+  async postExportPlaylistsHandler(request, h) {
+    await this._validator.validateExportPlaylistsPayload(request.payload);
+    await this._service.checkPlaylistId(request.params, request.auth.credentials.id);
 
-        
-        await this._service.sendMessage('export:playlist', JSON.stringify(message))
+    const message = {
+      userId: request.auth.credentials.id,
+      playlistId: request.params,
+      targetEmail: request.payload.targetEmail,
+    };
 
-        const response = h.response({
-            status: 'success',
-            message: 'Permintaan anda dalam antrean'
-        })
-        response.code(201)
-        return response
-    }
+    await this._service.sendMessage('export:playlist', JSON.stringify(message));
+
+    const response = h.response({
+      status: 'success',
+      message: 'Permintaan anda dalam antrean',
+    });
+    response.code(201);
+    return response;
+  }
 }
-module.exports = ExportsHandler
+module.exports = ExportsHandler;
